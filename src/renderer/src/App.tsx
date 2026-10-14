@@ -4,9 +4,15 @@ import type { Priority, Todo } from '../../shared/types'
 type Filter = 'pending' | 'all' | 'completed'
 
 const priorityLabels: Record<Priority, string> = {
-  high: '高',
-  medium: '中',
-  low: '低'
+  high: '三星',
+  medium: '二星',
+  low: '一星'
+}
+
+const filterLabels: Record<Filter, string> = {
+  pending: '今日任务',
+  all: '任务记录',
+  completed: '完成回忆'
 }
 
 function todayString(): string {
@@ -57,6 +63,13 @@ function App(): React.JSX.Element {
   }, [filter, todos])
 
   const pendingCount = todos.filter((todo) => !todo.completed).length
+  const completedCount = todos.filter((todo) => todo.completed).length
+  const companionMessage =
+    pendingCount === 0
+      ? '今天也辛苦啦！剩下的时间，一起去海边休息吧。'
+      : pendingCount <= 3
+        ? `还有 ${pendingCount} 个小目标，我会陪你一起完成的。`
+        : '任务有一点多呢……没关系，从最重要的开始吧！'
 
   function addTodo(event: FormEvent): void {
     event.preventDefault()
@@ -115,8 +128,11 @@ function App(): React.JSX.Element {
     <main className="app-shell">
       <header className="titlebar">
         <div className="titlebar-drag">
-          <strong>桌面待办</strong>
-          <span>{pendingCount} 项未完成</span>
+          <span className="crest-mark">✦</span>
+          <div className="title-copy">
+            <strong>SUMMER STAR LOG</strong>
+            <span>夏日魔术师的任务手册</span>
+          </div>
         </div>
         <div className="window-actions">
           <button className={alwaysOnTop ? 'active' : ''} onClick={() => void togglePin()} title="置顶">
@@ -132,12 +148,39 @@ function App(): React.JSX.Element {
       </header>
 
       <section className="content">
+        <section className="companion-panel">
+          <div className="magic-rings" aria-hidden="true">
+            <span className="ring-one" />
+            <span className="ring-two" />
+            <span className="staff-symbol">✧</span>
+          </div>
+          <div className="companion-portrait" aria-hidden="true">
+            <div className="ribbon ribbon-left" />
+            <div className="ribbon ribbon-right" />
+            <div className="hair" />
+            <div className="face" />
+            <div className="summer-hat">✦</div>
+            <div className="cape" />
+          </div>
+          <div className="companion-copy">
+            <span className="eyebrow">CASTER'S SUMMER SUPPORT</span>
+            <h1>今天也一起加油吧！</h1>
+            <p>{companionMessage}</p>
+            <div className="progress-line">
+              <span><b>{pendingCount}</b> 待完成</span>
+              <i />
+              <span><b>{completedCount}</b> 已完成</span>
+            </div>
+          </div>
+        </section>
+
         <form className="todo-form" onSubmit={addTodo}>
+          <span className="form-sparkle">✦</span>
           <input
             ref={inputRef}
             value={title}
             onChange={(event) => setTitle(event.target.value)}
-            placeholder="添加一件要做的事…"
+            placeholder="写下今天想完成的事情…"
             aria-label="待办内容"
             autoFocus
           />
@@ -154,18 +197,18 @@ function App(): React.JSX.Element {
               onChange={(event) => setPriority(event.target.value as Priority)}
               aria-label="优先级"
             >
-              <option value="high">高优先级</option>
-              <option value="medium">中优先级</option>
-              <option value="low">低优先级</option>
+              <option value="high">★★★ 最优先</option>
+              <option value="medium">★★ 重要</option>
+              <option value="low">★ 日常</option>
             </select>
-            <button type="submit">添加</button>
+            <button type="submit"><span>✧</span> 记录</button>
           </div>
         </form>
 
         <nav className="filters" aria-label="任务筛选">
           {(['pending', 'all', 'completed'] as Filter[]).map((item) => (
             <button key={item} className={filter === item ? 'active' : ''} onClick={() => setFilter(item)}>
-              {item === 'pending' ? '未完成' : item === 'all' ? '全部' : '已完成'}
+              {filterLabels[item]}
             </button>
           ))}
         </nav>
@@ -173,8 +216,9 @@ function App(): React.JSX.Element {
         <section className="todo-list">
           {visibleTodos.length === 0 ? (
             <div className="empty-state">
-              <div>✓</div>
-              <p>{filter === 'pending' ? '当前没有未完成事项' : '这里还没有任务'}</p>
+              <div className="empty-star">✦</div>
+              <strong>{filter === 'pending' ? '今日任务全部完成！' : '手册还是空白的'}</strong>
+              <p>{filter === 'pending' ? '做得非常好，奖励是轻松的夏日时光。' : '写下一个目标，让星光为你指路吧。'}</p>
             </div>
           ) : (
             visibleTodos.map((todo) => (
@@ -189,8 +233,8 @@ function App(): React.JSX.Element {
                 <div className="todo-body" onDoubleClick={() => editTodo(todo)}>
                   <p>{todo.title}</p>
                   <div className="todo-meta">
-                    <span className={`priority ${todo.priority}`}>{priorityLabels[todo.priority]}优先级</span>
-                    {todo.dueDate && <span className={todo.dueDate < todayString() && !todo.completed ? 'overdue' : ''}>截止 {todo.dueDate}</span>}
+                    <span className={`priority ${todo.priority}`}>✦ {priorityLabels[todo.priority]}</span>
+                    {todo.dueDate && <span className={todo.dueDate < todayString() && !todo.completed ? 'overdue' : ''}>◷ {todo.dueDate}</span>}
                   </div>
                 </div>
                 <div className="item-actions">
